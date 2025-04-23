@@ -77,7 +77,7 @@ paloma: public(bytes32)
 send_nonces: public(HashMap[uint256, bool])
 
 @deploy
-def __init__(_compass: address, _weth9: address, _refund_wallet: address, _gas_fee: uint256, _service_fee_collector: address, _service_fee: uint256):
+def __init__(_compass: address, _refund_wallet: address, _gas_fee: uint256, _service_fee_collector: address, _service_fee: uint256):
     self.compass = _compass
     self.refund_wallet = _refund_wallet
     self.gas_fee = _gas_fee
