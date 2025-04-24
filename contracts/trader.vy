@@ -39,12 +39,6 @@ event RemoveLiquidity:
     token1: address
     amount: uint256
 
-event TokenSent:
-    token: address
-    to: address
-    amount: uint256
-    nonce: uint256
-
 event UpdateCompass:
     old_compass: address
     new_compass: address
@@ -74,7 +68,6 @@ gas_fee: public(uint256)
 service_fee_collector: public(address)
 service_fee: public(uint256)
 paloma: public(bytes32)
-send_nonces: public(HashMap[uint256, bool])
 
 @deploy
 def __init__(_compass: address, _refund_wallet: address, _gas_fee: uint256, _service_fee_collector: address, _service_fee: uint256):
@@ -176,22 +169,6 @@ def remove_liquidity(token0: address, token1: address, amount: uint256):
     if _value > 0:
         send(msg.sender, _value)
     log RemoveLiquidity(sender=msg.sender, token0=token0, token1=token1, amount=amount)
-
-@external
-@nonreentrant
-def send_token(tokens: DynArray[address, 2], to: address, amounts: DynArray[uint256, 2], nonce: uint256):
-    self._paloma_check()
-    assert not self.send_nonces[nonce], "Invalid nonce"
-    assert len(tokens) == len(amounts), "Invalid tokens and amounts"
-    i: uint256 = 0
-    for token: address in tokens:
-        if token == empty(address):
-            raw_call(to, b"", value=amounts[i])
-        else:
-            self._safe_transfer(token, to, amounts[i])
-        log TokenSent(token, to, amounts[i], nonce)
-        i += 1
-    self.send_nonces[nonce] = True
 
 @external
 def update_compass(new_compass: address):
