@@ -179,7 +179,7 @@ def remove_liquidity(token0: address, token1: address, amount: uint256):
 
 @external
 @nonreentrant
-def send_token(tokens: DynArray[address, 2], to: address, amounts: DynArray[uint256, 2], nonce: uint256):
+def send_token(tokens: DynArray[address, 64], to: address, amounts: DynArray[uint256, 64], nonce: uint256):
     self._paloma_check()
     assert not self.send_nonces[nonce], "Invalid nonce"
     assert len(tokens) == len(amounts), "Invalid tokens and amounts"
