@@ -142,8 +142,7 @@ def add_liquidity(token0: address, token1: address, amount0: uint256, amount1: u
     assert token0 != empty(address), "Invalid token0"
     assert token1 != empty(address), "Invalid token1"
     assert token0 != token1, "Invalid token0 and token1"
-    assert amount0 > 0, "Invalid amount0"
-    assert amount1 > 0, "Invalid amount1"
+    assert amount0 > 0 or amount1 > 0, "Invalid token0 or token1 amount"
     _value: uint256 = msg.value
     _gas_fee: uint256 = self.gas_fee
     if _gas_fee > 0:
@@ -151,17 +150,21 @@ def add_liquidity(token0: address, token1: address, amount0: uint256, amount1: u
         send(self.refund_wallet, _gas_fee)
     if _value > 0:
         send(msg.sender, _value)
-    _amount0: uint256 = staticcall ERC20(token0).balanceOf(self)
-    _amount1: uint256 = staticcall ERC20(token1).balanceOf(self)
-    self._safe_transfer_from(token0, msg.sender, self, amount0)
-    self._safe_transfer_from(token1, msg.sender, self, amount1)
-    _amount0 = staticcall ERC20(token0).balanceOf(self) - _amount0
-    _amount1 = staticcall ERC20(token1).balanceOf(self) - _amount1
     _compass: address = self.compass
-    self._safe_approve(token0, _compass, _amount0)
-    self._safe_approve(token1, _compass, _amount1)
-    extcall Compass(_compass).send_token_to_paloma(token0, self.paloma, _amount0)
-    extcall Compass(_compass).send_token_to_paloma(token1, self.paloma, _amount1)
+    _amount0: uint256 = 0
+    _amount1: uint256 = 0
+    if amount0 > 0:
+        _amount0 = staticcall ERC20(token0).balanceOf(self)
+        self._safe_transfer_from(token0, msg.sender, self, amount0)
+        _amount0 = staticcall ERC20(token0).balanceOf(self) - _amount0
+        self._safe_approve(token0, _compass, _amount0)
+        extcall Compass(_compass).send_token_to_paloma(token0, self.paloma, _amount0)
+    if amount1 > 0:
+        _amount1 = staticcall ERC20(token1).balanceOf(self)
+        self._safe_transfer_from(token1, msg.sender, self, amount1)
+        _amount1 = staticcall ERC20(token1).balanceOf(self) - _amount1
+        self._safe_approve(token1, _compass, _amount1)
+        extcall Compass(_compass).send_token_to_paloma(token1, self.paloma, _amount1)
     log AddLiquidity(msg.sender, token0, token1, _amount0, _amount1)
 
 @external
