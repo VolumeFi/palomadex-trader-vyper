@@ -45,6 +45,36 @@ event TokenSent:
     amount: uint256
     nonce: uint256
 
+event PalomaDeposit:
+    token: String[128]
+    depositor: indexed(address)
+    amount: uint256
+
+event PalomaWithdraw:
+    token: String[128]
+    withdrawer: indexed(address)
+    amount: uint256
+
+event PalomaClaimReward:
+    token: String[128]
+    claimer: indexed(address)
+
+event PalomaCreateLock:
+    end_lock_time: uint256
+    locker: indexed(address)
+    amount: uint256
+
+event PalomaIncreaseLockAmount:
+    locker: indexed(address)
+    amount: uint256
+
+event PalomaIncreaseEndLockTime:
+    locker: indexed(address)
+    end_lock_time: uint256
+
+event PalomaWithdrawLock:
+    locker: indexed(address)
+
 event UpdateCompass:
     old_compass: address
     new_compass: address
@@ -195,6 +225,43 @@ def send_token(tokens: DynArray[address, 64], to: address, amounts: DynArray[uin
         log TokenSent(token, to, amounts[i], nonce)
         i += 1
     self.send_nonces[nonce] = True
+
+@external
+def deposit(token: String[128], amount: uint256):
+    assert len(token) > 0, "Invalid token"
+    assert amount > 0, "Invalid amount"
+    log PalomaDeposit(token, msg.sender, amount)
+
+@external
+def withdraw(token: String[128], amount: uint256):
+    assert len(token) > 0, "Invalid token"
+    assert amount > 0, "Invalid amount"
+    log PalomaWithdraw(token, msg.sender, amount)
+
+@external
+def claim_reward(token: String[128]):
+    assert len(token) > 0, "Invalid token"
+    log PalomaClaimReward(token, msg.sender)
+
+@external
+def create_lock(end_lock_time: uint256, amount: uint256):
+    assert end_lock_time > block.timestamp, "Invalid end lock time"
+    assert amount > 0, "Invalid amount"
+    log PalomaCreateLock(end_lock_time, msg.sender, amount)
+
+@external
+def increase_lock_amount(amount: uint256):
+    assert amount > 0, "Invalid amount"
+    log PalomaIncreaseLockAmount(msg.sender, amount)
+
+@external
+def increase_end_lock_time(end_lock_time: uint256):
+    assert end_lock_time > block.timestamp, "Invalid end lock time"
+    log PalomaIncreaseEndLockTime(msg.sender, end_lock_time)
+
+@external
+def withdraw_lock():
+    log PalomaWithdrawLock(msg.sender)
 
 @external
 def update_compass(new_compass: address):
