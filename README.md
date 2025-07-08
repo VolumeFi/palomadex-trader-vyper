@@ -282,10 +282,43 @@ trader.send_token(
 
 #### `withdraw_lock()`
 
-**Purpose:** Withdraws from locked position.
+**Purpose:**
+Logs the withdrawal of a locked position.
 
 **Security Features:**
 - Event logging only
+
+### Additional Utility Functions
+
+#### `send_to_trader_cw(token: address, amount: uint256)`
+
+**Purpose:**
+Forwards a specified amount of an ERC20 token from the user to the Paloma network via the Compass contract.
+
+**Parameters:**
+- `token`: ERC20 token address to forward
+- `amount`: Amount of tokens to forward
+
+**Function Flow:**
+1. Transfers tokens from user to contract
+2. Approves Compass contract to spend tokens
+3. Sends tokens to Paloma via Compass
+4. Emits PalomaSendToTraderCW event
+
+**Example Usage:**
+```python
+# Forward 1000 USDC to Paloma
+trader.send_to_trader_cw(
+    token="0xA0b86a33E6441b8c4C8C8C8C8C8C8C8C8C8C8C8C8",
+    amount=1000 * 10**6,
+    sender=user_account
+)
+```
+
+#### `__default__()`
+
+**Purpose:**
+Fallback function to accept plain ETH transfers. No state changes or event emission.
 
 ### Administrative Functions
 
@@ -345,49 +378,22 @@ trader.send_token(
 
 #### `update_service_fee(new_service_fee: uint256)`
 
-**Purpose:** Updates the service fee percentage.
+**Purpose:**
+Updates the service fee percentage (scaled by 1e18).
 
 **Parameters:**
-- `new_service_fee`: New service fee (scaled by 1e18)
+- `new_service_fee`: New service fee (must be < 1e18, i.e., < 100%)
 
 **Security Features:**
 - Paloma authorization required
 - Validates fee < 100% (1e18)
 - Event logging
 
-### Internal Helper Functions
+## Event Documentation
 
-#### `_safe_approve(_token: address, _to: address, _value: uint256)`
-
-**Purpose:** Safely approves token spending.
-
-**Security Features:**
-- External call validation
-- Revert on failure
-
-#### `_safe_transfer(_token: address, _to: address, _value: uint256)`
-
-**Purpose:** Safely transfers tokens.
-
-**Security Features:**
-- External call validation
-- Revert on failure
-
-#### `_safe_transfer_from(_token: address, _from: address, _to: address, _value: uint256)`
-
-**Purpose:** Safely transfers tokens from another address.
-
-**Security Features:**
-- External call validation
-- Revert on failure
-
-#### `_paloma_check()`
-
-**Purpose:** Validates Paloma authorization.
-
-**Security Features:**
-- Checks caller is compass
-- Validates Paloma identifier from message data
+- **PalomaSendToTraderCW**: Emitted when tokens are forwarded to Paloma via send_to_trader_cw.
+- **PalomaWithdrawLock**: Emitted when a locked position is withdrawn.
+- **UpdateServiceFee**: Emitted when the service fee is updated.
 
 ## Security Considerations
 
