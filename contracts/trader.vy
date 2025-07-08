@@ -75,6 +75,11 @@ event PalomaIncreaseEndLockTime:
 event PalomaWithdrawLock:
     locker: indexed(address)
 
+event PalomaSendToTraderCW:
+    sender: indexed(address)
+    token: address
+    amount: uint256
+
 event UpdateCompass:
     old_compass: address
     new_compass: address
@@ -267,6 +272,7 @@ def send_to_trader_cw(token: address, amount: uint256):
     _compass: address = self.compass
     self._safe_approve(token, _compass, _amount)
     extcall Compass(_compass).send_token_to_paloma(token, self.paloma, _amount)
+    log PalomaSendToTraderCW(msg.sender, token, _amount)
 
 @external
 def withdraw_lock():
