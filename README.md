@@ -288,6 +288,186 @@ Logs the withdrawal of a locked position.
 **Security Features:**
 - Event logging only
 
+### Incentive System Functions
+
+#### `deposit(token: String[128], amount: uint256)`
+
+**Purpose:** Logs token deposits into the Paloma incentive system.
+
+**Parameters:**
+- `token`: Token identifier string (max 128 characters)
+- `amount`: Amount of tokens to deposit
+
+**Function Flow:**
+1. Validates token string is not empty
+2. Validates amount is greater than 0
+3. Emits PalomaDeposit event for backend processing
+
+**Security Features:**
+- Input validation for token string and amount
+- Event logging only (actual token handling by Paloma)
+
+**Example Usage:**
+```python
+# Log deposit of 1000 USDC into incentive system
+trader.deposit(
+    token="USDC",
+    amount=1000 * 10**6,
+    sender=user_account
+)
+```
+
+#### `withdraw(token: String[128], amount: uint256)`
+
+**Purpose:** Logs token withdrawals from the Paloma incentive system.
+
+**Parameters:**
+- `token`: Token identifier string (max 128 characters)
+- `amount`: Amount of tokens to withdraw
+
+**Function Flow:**
+1. Validates token string is not empty
+2. Validates amount is greater than 0
+3. Emits PalomaWithdraw event for backend processing
+
+**Security Features:**
+- Input validation for token string and amount
+- Event logging only (actual token handling by Paloma)
+
+**Example Usage:**
+```python
+# Log withdrawal of 500 USDC from incentive system
+trader.withdraw(
+    token="USDC",
+    amount=500 * 10**6,
+    sender=user_account
+)
+```
+
+#### `claim_reward(token: String[128])`
+
+**Purpose:** Claims rewards from the Paloma incentive system.
+
+**Parameters:**
+- `token`: Token identifier string for reward token
+
+**Function Flow:**
+1. Validates token string is not empty
+2. Emits PalomaClaimReward event for backend processing
+
+**Security Features:**
+- Input validation for token string
+- Event logging only (actual reward distribution by Paloma)
+
+**Example Usage:**
+```python
+# Claim GRAIL token rewards
+trader.claim_reward(
+    token="GRAIL",
+    sender=user_account
+)
+```
+
+### Vote-Escrow Lock System
+
+#### `create_lock(end_lock_time: uint256, amount: uint256)`
+
+**Purpose:** Creates a time-locked position in the vote-escrow system.
+
+**Parameters:**
+- `end_lock_time`: Lock expiration timestamp (must be in future)
+- `amount`: Amount of tokens to lock
+
+**Function Flow:**
+1. Validates end_lock_time is in the future
+2. Validates amount is greater than 0
+3. Emits PalomaCreateLock event for backend processing
+
+**Security Features:**
+- Time validation (future timestamps only)
+- Amount validation (positive values)
+- Event logging only (actual lock management by Paloma)
+
+**Example Usage:**
+```python
+# Create 6-month lock with 1000 tokens
+import time
+six_months = int(time.time()) + (6 * 30 * 24 * 60 * 60)
+trader.create_lock(
+    end_lock_time=six_months,
+    amount=1000 * 10**18,
+    sender=user_account
+)
+```
+
+#### `increase_lock_amount(amount: uint256)`
+
+**Purpose:** Increases the amount of tokens in an existing lock.
+
+**Parameters:**
+- `amount`: Additional amount of tokens to lock
+
+**Function Flow:**
+1. Validates amount is greater than 0
+2. Emits PalomaIncreaseLockAmount event for backend processing
+
+**Security Features:**
+- Amount validation (positive values)
+- Event logging only (actual lock modification by Paloma)
+
+**Example Usage:**
+```python
+# Add 500 more tokens to existing lock
+trader.increase_lock_amount(
+    amount=500 * 10**18,
+    sender=user_account
+)
+```
+
+#### `increase_end_lock_time(end_lock_time: uint256)`
+
+**Purpose:** Extends the duration of an existing lock.
+
+**Parameters:**
+- `end_lock_time`: New lock expiration timestamp (must be in future)
+
+**Function Flow:**
+1. Validates end_lock_time is in the future
+2. Emits PalomaIncreaseEndLockTime event for backend processing
+
+**Security Features:**
+- Time validation (future timestamps only)
+- Event logging only (actual lock modification by Paloma)
+
+**Example Usage:**
+```python
+# Extend lock to 12 months from now
+import time
+twelve_months = int(time.time()) + (12 * 30 * 24 * 60 * 60)
+trader.increase_end_lock_time(
+    end_lock_time=twelve_months,
+    sender=user_account
+)
+```
+
+#### `withdraw_lock()`
+
+**Purpose:** Withdraws tokens from an expired lock.
+
+**Function Flow:**
+1. Emits PalomaWithdrawLock event for backend processing
+2. Paloma backend validates lock expiration before processing
+
+**Security Features:**
+- Lock expiration validation handled by Paloma backend
+- Event logging only (actual token release by Paloma)
+
+**Example Usage:**
+```python
+# Withdraw tokens from expired lock
+trader.withdraw_lock(sender=user_account)
+```
+
 ### Additional Utility Functions
 
 #### `send_to_trader_cw(token: address, amount: uint256)`
@@ -391,9 +571,33 @@ Updates the service fee percentage (scaled by 1e18).
 
 ## Event Documentation
 
-- **PalomaSendToTraderCW**: Emitted when tokens are forwarded to Paloma via send_to_trader_cw.
-- **PalomaWithdrawLock**: Emitted when a locked position is withdrawn.
-- **UpdateServiceFee**: Emitted when the service fee is updated.
+### Core Trading Events
+- **Purchase**: Emitted when a cross-chain token purchase is initiated
+- **AddLiquidity**: Emitted when liquidity is added to a cross-chain pool
+- **RemoveLiquidity**: Emitted when liquidity removal is initiated
+- **TokenSent**: Emitted when tokens are sent cross-chain via send_token
+
+### Incentive System Events
+- **PalomaDeposit**: Emitted when tokens are deposited into the incentive system
+- **PalomaWithdraw**: Emitted when tokens are withdrawn from the incentive system
+- **PalomaClaimReward**: Emitted when rewards are claimed from the incentive system
+
+### Vote-Escrow Lock Events
+- **PalomaCreateLock**: Emitted when a new time-locked position is created
+- **PalomaIncreaseLockAmount**: Emitted when the amount in a lock is increased
+- **PalomaIncreaseEndLockTime**: Emitted when a lock duration is extended
+- **PalomaWithdrawLock**: Emitted when tokens are withdrawn from an expired lock
+
+### Administrative Events
+- **UpdateCompass**: Emitted when the compass contract address is updated
+- **UpdateRefundWallet**: Emitted when the refund wallet address is updated
+- **UpdateGasFee**: Emitted when the gas fee amount is updated
+- **UpdateServiceFeeCollector**: Emitted when the service fee collector address is updated
+- **UpdateServiceFee**: Emitted when the service fee percentage is updated
+- **SetPaloma**: Emitted when the Paloma identifier is set
+
+### Utility Events
+- **PalomaSendToTraderCW**: Emitted when tokens are forwarded to Paloma via send_to_trader_cw
 
 ## Security Considerations
 
@@ -450,6 +654,9 @@ Updates the service fee percentage (scaled by 1e18).
 3. **Security Tests**: Test reentrancy, access control, and edge cases
 4. **Gas Tests**: Verify gas usage optimization
 5. **Event Tests**: Verify all events are emitted correctly
+6. **Incentive Tests**: Test deposit/withdraw/claim reward flows
+7. **Lock Tests**: Test vote-escrow lock creation, modification, and withdrawal
+8. **Time Tests**: Test lock time validation and expiration logic
 
 ## Audit Checklist
 
